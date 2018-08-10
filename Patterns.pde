@@ -1,12 +1,12 @@
 public abstract class TrianglePattern extends LXPattern 
 {
 
-    protected final Triplex model;
+    protected final TripleHelix model;
 
     public TrianglePattern(LX lx) 
     {
         super(lx);
-        this.model = (Triplex) lx.model;
+        this.model = (TripleHelix) lx.model;
     }
 
     public <T extends Comparable<T>> T clamp(T val, T min, T max) 

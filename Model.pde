@@ -2,7 +2,7 @@ public static int NUM_LIGHTS = 144 * 3;
 
 LXModel buildModel() 
 {
-    return new Triplex();
+    return new TripleHelix();
 }
 
 public static class Vector3 
@@ -120,7 +120,7 @@ public static class Triangle
     }
 }
 
-public static class Triplex extends LXModel 
+public static class TripleHelix extends LXModel 
 {
     public static final int SIZE = 9;
     public static Triangle[] triangles;
@@ -132,7 +132,7 @@ public static class Triplex extends LXModel
     public static int triangleLength = 0;
     public static int edgesLength = 0;
 
-    public Triplex() 
+    public TripleHelix() 
     {
         super(new LXAbstractFixture[]{ t, e });
         triangleLength = t.getPoints().size();
