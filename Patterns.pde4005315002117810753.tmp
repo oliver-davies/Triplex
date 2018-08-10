@@ -132,7 +132,7 @@ public class PatternOuterDash extends TrianglePattern
             for (int j = 0; j < l.fillerPoints.length; j++) 
             { 
                 double z = cos((float)(l.fillerPoints[j].z) + timePassed);
-                setColor(model.structure.triangleLength + j + (i * l.fillerPoints.length), LXColor.gray(z));
+                setColor(model.triangleLength + j + (i * l.fillerPoints.length), LXColor.gray(z));
             }
         }
     }
@@ -164,9 +164,9 @@ public class PatternOuterLineSweep extends TrianglePattern
         float w = (float)this.w.getValue();
         float amp = (float)this.amp.getValue();
         Vector3 dir = new Vector3((float)this.x.getValue(), (float)this.y.getValue(), (float)this.z.getValue());
-        for (int i = 0; i < edges.length; i++) 
+        for (int i = 0; i < model.edges.length; i++) 
         { 
-            Edge l = edges[i];
+            Edge l = model.edges[i];
 
             for (int j = 0; j < l.fillerPoints.length; j++) 
             { 
@@ -174,7 +174,7 @@ public class PatternOuterLineSweep extends TrianglePattern
                 double yDist = Wave((float)l.fillerPoints[j].y, amp, offset, w) * dir.y;
                 double zDist = Wave((float)l.fillerPoints[j].z, amp, offset, w) * dir.z;
                 float s = Sphere(l.fillerPoints[j], new Vector3(0,0,0), 2);
-                setColor(model.structure.triangleLength + j + (i * l.fillerPoints.length), LXColor.gray(clamp(((float)(xDist + yDist + zDist) * 10), 0.0, 100.0)));
+                setColor(model.triangleLength + j + (i * l.fillerPoints.length), LXColor.gray(clamp(((float)(xDist + yDist + zDist) * 10), 0.0, 100.0)));
             }
         }
     }

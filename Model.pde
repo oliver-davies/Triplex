@@ -120,29 +120,21 @@ public class Triangle
     }
 }
 
-public class TripleHelix extends LXModel 
+public class Structure
 {
-    public final int SIZE = 9;
+    public final int TRIANGLE_COUNT = 9;
+    public final int EDGE_COUNT = 3;
+    public ArrayList<LXAbstractFixture> fixtures = new ArrayList<LXAbstractFixture>();
     public Triangle[] triangles;
     public Edge[] edges;
-
     public int triangleLength = 0;
     public int edgesLength = 0;
 
-    public TripleHelix() 
+    public Structure()
     {
-        // Broken here, this is a super frustrating limitation.
-        // Yay inheritance =/
-        super(PopulateFixtures());
-    }
-
-    private void PopulateFixtures()
-    {
-        ArrayList<LXAbstractFixture> fixtures = new ArrayList<LXAbstractFixture>();
-
         // Triangles
-        triangles = new Triangle[SIZE];
-        for (int z = 0; z <= SIZE - 1; ++z) 
+        triangles = new Triangle[TRIANGLE_COUNT];
+        for (int z = 0; z < TRIANGLE_COUNT; ++z) 
         {
             triangles[z] = new Triangle(new Vector3(5, 5, z*5 - 10), 90 + (z * 15), 10, 144);
 
@@ -164,6 +156,8 @@ public class TripleHelix extends LXModel
             v3s[i] = triangles[i].v3;
         }
 
+        edges = new Edge[EDGE_COUNT];
+
         edges[0] = new Edge(v1s, 296);
         edges[1] = new Edge(v2s, 296);
         edges[2] = new Edge(v3s, 296);
@@ -179,7 +173,10 @@ public class TripleHelix extends LXModel
         fixtures.add(helix1);
         fixtures.add(helix2);
         fixtures.add(helix3);
-        
+    }
+
+    public LXAbstractFixture[] GetFixtures()
+    {
         return fixtures.toArray(new LXAbstractFixture[fixtures.size()]);
     }
 
@@ -215,5 +212,21 @@ public class TripleHelix extends LXModel
                 addPoint(fillerPoints[i].toLXPoint());
             }
         }
+    }
+}
+
+public class TripleHelix extends LXModel 
+{
+    public Structure structure;
+
+    private TripleHelix(Structure structure) 
+    {
+        super(structure.GetFixtures());
+        this.structure = structure;
+    }
+
+    public TripleHelix()
+    {
+        this(new Structure());
     }
 }
