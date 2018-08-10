@@ -1,5 +1,3 @@
-public int NUM_LIGHTS = 144 * 3;
-
 TripleHelix buildModel() 
 {
     return new TripleHelix();
@@ -65,9 +63,12 @@ public class Vector3
 public class Edge
 {
     public Vector3[] fillerPoints;
+    public int[] indicies;
 
-    public Edge(Vector3[] points, int ledCount)
+    public Edge(Vector3[] points, int ledCount, int baseIndex)
     {
+        indicies = new int[ledCount];
+
         fillerPoints = new Vector3[ledCount];
         int perSection = (int)(ledCount/(points.length - 1));
         for (int i = 0; i < points.length - 1; i++)
@@ -75,7 +76,9 @@ public class Edge
             Vector3 direction = points[i+1].sub(points[i]);
             for(int j = 0; j < perSection; j++)
             {
-                fillerPoints[(i * perSection) + j] = points[i].add(direction.mult((float)j/perSection));
+                int counter = (i * perSection) + j;
+                fillerPoints[counter] = points[i].add(direction.mult((float)j/perSection));
+                indicies[counter] = baseIndex + counter;
             }
         }
     }
@@ -86,9 +89,12 @@ public class Triangle
     public Vector3 center;
     public Vector3 v1, v2, v3;
     public Vector3[] fillerPoints;
+    public int[] indicies;
 
-    public Triangle(Vector3 c, float rotation, float radius, int countPerEdge)
-    {
+    public Triangle(Vector3 c, float rotation, float radius, int countPerEdge, int baseIndex)
+    {       
+        indicies = new int[countPerEdge * 3];
+
         center = c;
 
         v1 = c.add(new Vector3(radius * cos(radians(0 + rotation)), radius * sin(radians(0 + rotation)), 0));
@@ -99,23 +105,20 @@ public class Triangle
 
         // v1 -> v2
         Vector3 v12 = v2.sub(v1);
+        // v2 -> v3
+        Vector3 v23 = v3.sub(v2);
+        // v3 -> v1
+        Vector3 v31 = v1.sub(v3);
+
         for (int i = 0; i < countPerEdge; i++)
         {
             fillerPoints[i] = v1.add(v12.mult( ((float)i)/countPerEdge));
-        }
-
-        // v2 -> v3
-        Vector3 v23 = v3.sub(v2);
-        for (int i = 0; i < countPerEdge; i++)
-        {
             fillerPoints[i + countPerEdge] = v2.add(v23.mult( ((float)i)/countPerEdge));
-        }
-
-        // v3 -> v1
-        Vector3 v31 = v1.sub(v3);
-        for (int i = 0; i < countPerEdge; i++)
-        {
             fillerPoints[i + (countPerEdge * 2)] = v3.add(v31.mult( ((float)i)/countPerEdge));
+
+            indicies[i]                         = baseIndex + i;
+            indicies[i + countPerEdge]          = baseIndex + i + countPerEdge;
+            indicies[i + (countPerEdge * 2)]    = baseIndex + i + (countPerEdge * 2);
         }
     }
 }
@@ -124,6 +127,8 @@ public class Structure
 {
     // Constants 
     public final int TRIANGLE_COUNT = 9;
+    public final int TRIANGLE_EDGE_LED_COUNT = 144;
+    public final int HELIX_EDGE_LED_COUNT = 296;
     public final int EDGE_COUNT = 3;
 
     // Components of the structure
@@ -142,11 +147,12 @@ public class Structure
         triangles = new Triangle[TRIANGLE_COUNT];
         for (int z = 0; z < TRIANGLE_COUNT; ++z) 
         {
-            triangles[z] = new Triangle(new Vector3(5, 5, z*5 - 10), 90 + (z * 15), 10, 144);
+            println(trianglesLength);
+            trianglesLength += TRIANGLE_EDGE_LED_COUNT * 3;
+
+            triangles[z] = new Triangle(new Vector3(5, 5, z*5 - 10), 90 + (z * 15), 10, TRIANGLE_EDGE_LED_COUNT, trianglesLength);
 
             LXTriangle tri = new LXTriangle(triangles[z]);
-            trianglesLength += tri.getPoints().size();
-
             fixtures.add(tri);
         }
 
@@ -164,9 +170,9 @@ public class Structure
 
         edges = new Edge[EDGE_COUNT];
 
-        edges[0] = new Edge(v1s, 296);
-        edges[1] = new Edge(v2s, 296);
-        edges[2] = new Edge(v3s, 296);
+        edges[0] = new Edge(v1s, HELIX_EDGE_LED_COUNT, trianglesLength);
+        edges[1] = new Edge(v2s, HELIX_EDGE_LED_COUNT, trianglesLength + HELIX_EDGE_LED_COUNT);
+        edges[2] = new Edge(v3s, HELIX_EDGE_LED_COUNT, trianglesLength + HELIX_EDGE_LED_COUNT * 2);
 
         LXEdge helix1 = new LXEdge(edges[0]);
         LXEdge helix2 = new LXEdge(edges[1]);

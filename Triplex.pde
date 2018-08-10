@@ -28,25 +28,44 @@ void setup()
 {
   // Processing setup, constructs the window and the LX instance
   size(1920, 1020, P3D);
-  LXModel triplex = buildModel();
+
+  // Start Triplex
+  TripleHelix triplex = buildModel();
+
   lx = new heronarts.lx.studio.LXStudio(this, triplex, MULTITHREADED);
   lx.ui.setResizable(RESIZABLE);
   lx.ui.setBackgroundColor(0);
+
+
+  // Initialize networking
+  try 
+  {
+    // Show  a single test triangle for now
+    TriangleDatagram datagram = new TriangleDatagram(lx, triplex.structure.triangles[0].indicies, (byte) 0x00);
+    datagram.setAddress("192.168.1.123").setPort(6969);
+
+    LXDatagramOutput datagramOutput = new LXDatagramOutput(lx); 
+    datagramOutput.addDatagram(datagram);
+    lx.engine.output.addChild(datagramOutput);
+  }
+  catch (Exception x) 
+  {
+    println("BAD ADDRESS: " + x.getLocalizedMessage());
+    x.printStackTrace();
+    exit();
+  }
+
 }
 
 void initialize(heronarts.lx.studio.LXStudio lx, heronarts.lx.studio.LXStudio.UI ui) 
 {
-  
+
 }
 
 void onUIReady(heronarts.lx.studio.LXStudio lx, heronarts.lx.studio.LXStudio.UI ui) 
 {
   // Add custom UI components here
   //UICollapsibleSection t = new UIBoardTest(ui, lx).setExpanded(true);
-  // UIDeviceBin[] uic = new UIDeviceBin[10];
-  // ui.bottomTray.deviceBins.values().toArray(uic);
-  // //t.addToContainer((UI2dComponent)uic[0].children.get(0));
-  // print(uic[0].getChildren().get(0));
 }
 
 void draw() 
