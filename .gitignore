@@ -2,3 +2,6 @@ application/
 build-tmp/
 code/
 *.tmp
+.gitignore
+.DS_Store
+
