@@ -24,29 +24,32 @@
 // Reference to top-level LX instance
 heronarts.lx.studio.LXStudio lx;
 
+TripleHelix triplex;
+
 void setup() 
 {
   // Processing setup, constructs the window and the LX instance
   size(1920, 1020, P3D);
 
   // Start Triplex
-  TripleHelix triplex = buildModel();
-
+  triplex = buildModel();
   lx = new heronarts.lx.studio.LXStudio(this, triplex, MULTITHREADED);
   lx.ui.setResizable(RESIZABLE);
-  lx.ui.setBackgroundColor(0);
+  // lx.ui.setBackgroundColor(0);
+}
 
-
+void initialize(heronarts.lx.studio.LXStudio lx, heronarts.lx.studio.LXStudio.UI ui)
+{
   // Initialize networking
   try 
   {
     // Show  a single test triangle for now
-    TriangleDatagram datagram = new TriangleDatagram(lx, triplex.structure.triangles[0].indicies, (byte) 0x00);
+    TriangleDatagram datagram = new TriangleDatagram(lx, LXFixture.Utils.getIndices(triplex.triangles[0]), (byte) 0x00);
     datagram.setAddress("192.168.1.123").setPort(6969);
 
     LXDatagramOutput datagramOutput = new LXDatagramOutput(lx); 
     datagramOutput.addDatagram(datagram);
-    lx.engine.output.addChild(datagramOutput);
+    lx.engine.addOutput(datagramOutput);
   }
   catch (Exception x) 
   {
@@ -54,12 +57,6 @@ void setup()
     x.printStackTrace();
     exit();
   }
-
-}
-
-void initialize(heronarts.lx.studio.LXStudio lx, heronarts.lx.studio.LXStudio.UI ui) 
-{
-
 }
 
 void onUIReady(heronarts.lx.studio.LXStudio lx, heronarts.lx.studio.LXStudio.UI ui) 
@@ -82,6 +79,6 @@ final static float INCHES = 1;
 final static float IN = INCHES;
 final static float FEET = 12 * INCHES;
 final static float FT = FEET;
-final static float CM = 2.54 * IN;
+final static float CM = IN / 2.54;
 final static float MM = CM * .1;
 final static float M = CM * 00;

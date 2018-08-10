@@ -1,16 +1,12 @@
-public abstract class TrianglePattern extends LXPattern 
+public abstract class TrianglePattern extends LXModelPattern<TripleHelix> 
 {
 
-    protected final TripleHelix model;
-    protected final Triangle[] triangles;
-    protected final Edge[] edges;
+    protected final Triangle[] triangles = model.triangles;
+    protected final Edge[] edges = model.edges;
 
     public TrianglePattern(LX lx) 
     {
         super(lx);
-        this.model = (TripleHelix) lx.model;
-        this.triangles = this.model.structure.triangles;
-        this.edges = this.model.structure.edges;
     }
 
     public <T extends Comparable<T>> T clamp(T val, T min, T max) 
@@ -21,6 +17,8 @@ public abstract class TrianglePattern extends LXPattern
     }
 }
 
+// Note: there is alredy a SolidColorPattern with a nice UI. Recommend removing this...
+// Find it in Browser | Patterns | Color
 public class PatternSolid extends LXPattern 
 {
 
@@ -59,18 +57,19 @@ public class PatternSweepTwirl extends TrianglePattern
 
     public void run(double deltaMs) 
     {
-        float rSpread = (float)this.radialSpread.getValue();
-        float dSweep = (float)this.depthSweep.getValue();
+        float rSpread = this.radialSpread.getValuef();
+        float dSweep = this.depthSweep.getValuef();
 
-        for (int t = 0; t < triangles.length; t++) 
+        for (Triangle tri : triangles) 
         {
-            Triangle tri = triangles[t];
-            double val = t * 10 + dSweep;
-            for (int i = 0; i < tri.fillerPoints.length; i++)
+            double val = tri.index * 10 + dSweep;
+            for (LXPoint p : tri.points)
             {
-                double xDist = (tri.center.x - tri.fillerPoints[i].x);
-                double yDist = (tri.center.y - tri.fillerPoints[i].y);
-                setColor(i + (t * tri.fillerPoints.length), LXColor.gray(val + ((xDist*xDist + yDist*yDist) * rSpread)));
+                double xDist = (tri.center.x - p.x);
+                double yDist = (tri.center.y - p.y);
+                
+                // NOTE: gray expects values 0-100, you are depending on strange clipping behavior here
+                setColor(p.index, LXColor.gray(val + ((xDist*xDist + yDist*yDist) * rSpread)));
             }
         }
     }
@@ -96,15 +95,15 @@ public class PatternRadialWarp extends TrianglePattern
         float wWidth = (float)this.warpWidth.getValue();
         float crawl = (float)this.crawl.getValue();
 
-        for (int t = 0; t < triangles.length; t++) 
+        for (Triangle tri : triangles) 
         {
-            Triangle tri = triangles[t];
-
-            for (int i = 0; i < tri.fillerPoints.length; i++)
+            for (LXPoint p : tri.points)
             {
-                double xDist = cos((float)(tri.center.x - tri.fillerPoints[i].x) + sin(crawl) * 2);
-                double yDist = sin((float)(tri.center.y - tri.fillerPoints[i].y) + cos(crawl) * 2);
-                setColor(i + (t * tri.fillerPoints.length), LXColor.gray(((xDist*xDist + yDist*yDist) * wRadius - wWidth)));
+                double xDist = cos((float)(tri.center.x - p.x) + sin(crawl) * 2);
+                double yDist = sin((float)(tri.center.y - p.y) + cos(crawl) * 2);
+                // NOTE: you are depending upon weird clipping of negative and out of bounds values
+                // to the gray function here... it seems to work, but this is brittle...
+                setColor(p.index, LXColor.gray(((xDist*xDist + yDist*yDist) * wRadius - wWidth)));
             }
         }
     }
@@ -113,6 +112,9 @@ public class PatternRadialWarp extends TrianglePattern
 public class PatternOuterDash extends TrianglePattern 
 {
     public final CompoundParameter speed = new CompoundParameter("Speed", 0, -1, 1);
+    
+    // NOTE: check out Accumulator: http://lx.studio/api/heronarts/lx/modulator/Accumulator.html
+    // It will do this but handle the overflow problem
     private float timePassed = 0;
 
     public PatternOuterDash(LX lx) 
@@ -125,14 +127,13 @@ public class PatternOuterDash extends TrianglePattern
     {
         float speed = (float)this.speed.getValue();
         timePassed += (float)deltaMs * speed * 0.05;
-        for (int i = 0; i < edges.length; i++) 
+        for (Edge l : edges) 
         { 
-            Edge l = edges[i];
-
-            for (int j = 0; j < l.fillerPoints.length; j++) 
+            for (LXPoint point : l.points) 
             { 
-                double z = cos((float)(l.fillerPoints[j].z) + timePassed);
-                setColor(model.structure.trianglesLength + j + (i * l.fillerPoints.length), LXColor.gray(z));
+                // NOTE: gray expects values in range 0-100
+                double z = 50 + 50 * cos((float)(point.z) + timePassed);
+                setColor(point.index, LXColor.gray(z));
             }
         }
     }
@@ -163,19 +164,16 @@ public class PatternOuterLineSweep extends TrianglePattern
         float offset = (float)this.distance.getValue();
         float w = (float)this.w.getValue();
         float amp = (float)this.amp.getValue();
-        Vector3 dir = new Vector3((float)this.x.getValue(), (float)this.y.getValue(), (float)this.z.getValue());
-        for (int i = 0; i < edges.length; i++) 
+        PVector dir = new PVector(this.x.getValuef(), this.y.getValuef(), this.z.getValuef());
+        for (Edge l : edges) 
         { 
-            Edge l = edges[i];
-
-            for (int j = 0; j < l.fillerPoints.length; j++) 
+            for (LXPoint p : l.points) 
             { 
-                double xDist = Wave((float)l.fillerPoints[j].x, amp, offset, w) * dir.x;
-                double yDist = Wave((float)l.fillerPoints[j].y, amp, offset, w) * dir.y;
-                double zDist = Wave((float)l.fillerPoints[j].z, amp, offset, w) * dir.z;
-                float s = Sphere(l.fillerPoints[j], new Vector3(0,0,0), 2);
-                setColor(model.structure.trianglesLength
- + j + (i * l.fillerPoints.length), LXColor.gray(clamp(((float)(xDist + yDist + zDist) * 10), 0.0, 100.0)));
+                double xDist = Wave(p.x, amp, offset, w) * dir.x;
+                double yDist = Wave(p.y, amp, offset, w) * dir.y;
+                double zDist = Wave(p.z, amp, offset, w) * dir.z;
+                float s = Sphere(new PVector(p.x, p.y, p.z), new PVector(0,0,0), 2);
+                setColor(p.index, LXColor.gray(clamp(((float)(xDist + yDist + zDist) * 10), 0.0, 100.0)));
             }
         }
     }
@@ -185,9 +183,9 @@ public class PatternOuterLineSweep extends TrianglePattern
         return amp * exp(-((x - offset) * (x - offset))/(2 * width * width));
     }
 
-    protected float Sphere(Vector3 center, Vector3 position, float radius)
+    protected float Sphere(PVector center, PVector position, float radius)
     {
-        return Wave((float)position.sub(center).magnitude(), 100.0f, 1.0f, radius);
+        return Wave((float)position.copy().sub(center).mag(), 100.0f, 1.0f, radius);
     }
 }
 
@@ -216,12 +214,12 @@ public class PatternSpheroid extends TrianglePattern
         float offset = (float)this.offset.getValue();
         float w = (float)this.w.getValue();
         float amp = (float)this.amp.getValue();
-        Vector3 origin = new Vector3((float)this.x.getValue(), (float)this.y.getValue(), (float)this.z.getValue());
+        PVector origin = new PVector(this.x.getValuef(), this.y.getValuef(), this.z.getValuef());
 
-        for (int j = 0; j < model.structure.totalLength; j++) 
+        for (LXPoint p : model.points) 
         { 
-            float s = Sphere(new Vector3(model.points[j]), origin, amp, w, offset);
-            setColor(j, LXColor.gray(s));
+            float s = Sphere(new PVector(p.x, p.y, p.z), origin, amp, w, offset);
+            setColor(p.index, LXColor.gray(s));
         }
     }
 
@@ -230,9 +228,9 @@ public class PatternSpheroid extends TrianglePattern
         return amp * exp(-((x - offset) * (x - offset))/(2 * width * width));
     }
 
-    protected float Sphere(Vector3 center, Vector3 position, float amp, float radius, float offset)
+    protected float Sphere(PVector center, PVector position, float amp, float radius, float offset)
     {
-        return Wave((float)position.sub(center).magnitude(), amp, offset, radius);
+        return Wave((float)position.copy().sub(center).mag(), amp, offset, radius);
     }
 }
 
