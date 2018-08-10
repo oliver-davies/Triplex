@@ -1,11 +1,11 @@
-public static int NUM_LIGHTS = 144 * 3;
+public int NUM_LIGHTS = 144 * 3;
 
-LXModel buildModel() 
+TripleHelix buildModel() 
 {
     return new TripleHelix();
 }
 
-public static class Vector3 
+public class Vector3 
 {
     public double x, y, z;
 
@@ -62,7 +62,7 @@ public static class Vector3
     }
 }
 
-public static class Edge
+public class Edge
 {
     public Vector3[] fillerPoints;
 
@@ -81,7 +81,7 @@ public static class Edge
     }
 }
 
-public static class Triangle 
+public class Triangle 
 {
     public Vector3 center;
     public Vector3 v1, v2, v3;
@@ -120,90 +120,99 @@ public static class Triangle
     }
 }
 
-public static class TripleHelix extends LXModel 
+public class TripleHelix extends LXModel 
 {
-    public static final int SIZE = 9;
-    public static Triangle[] triangles;
-    public static Edge[] edges;
+    public final int SIZE = 9;
+    public Triangle[] triangles;
+    public Edge[] edges;
 
-    public static LXAbstractFixture t = new Triangles();
-    public static LXAbstractFixture e = new Edges();
-
-    public static int triangleLength = 0;
-    public static int edgesLength = 0;
+    public int triangleLength = 0;
+    public int edgesLength = 0;
 
     public TripleHelix() 
     {
-        super(new LXAbstractFixture[]{ t, e });
-        triangleLength = t.getPoints().size();
-        edgesLength = e.getPoints().size();
+        // Broken here, this is a super frustrating limitation.
+        // Yay inheritance =/
+        super(PopulateFixtures());
     }
 
-    private static class Edges extends LXAbstractFixture 
+    private void PopulateFixtures()
     {
-        Edges()
-        {
+        ArrayList<LXAbstractFixture> fixtures = new ArrayList<LXAbstractFixture>();
 
-            PopulateEdges();
+        // Triangles
+        triangles = new Triangle[SIZE];
+        for (int z = 0; z <= SIZE - 1; ++z) 
+        {
+            triangles[z] = new Triangle(new Vector3(5, 5, z*5 - 10), 90 + (z * 15), 10, 144);
+
+            LXTriangle tri = new LXTriangle(triangles[z]);
+            triangleLength += tri.getPoints().size();
+
+            fixtures.add(tri);
         }
 
-        private void PopulateEdges()
+        // Edges
+        Vector3[] v1s = new Vector3[triangles.length];
+        Vector3[] v2s = new Vector3[triangles.length];
+        Vector3[] v3s = new Vector3[triangles.length];
+
+        for(int i = 0; i < triangles.length; i++)
         {
-            Vector3[] v1s = new Vector3[triangles.length];
-            Vector3[] v2s = new Vector3[triangles.length];
-            Vector3[] v3s = new Vector3[triangles.length];
+            v1s[i] = triangles[i].v1;
+            v2s[i] = triangles[i].v2;
+            v3s[i] = triangles[i].v3;
+        }
 
-            for(int i = 0; i < triangles.length; i++)
+        edges[0] = new Edge(v1s, 296);
+        edges[1] = new Edge(v2s, 296);
+        edges[2] = new Edge(v3s, 296);
+
+        LXEdge helix1 = new LXEdge(edges[0]);
+        LXEdge helix2 = new LXEdge(edges[1]);
+        LXEdge helix3 = new LXEdge(edges[2]);
+        
+        edgesLength += helix1.getPoints().size();
+        edgesLength += helix2.getPoints().size();
+        edgesLength += helix3.getPoints().size();
+
+        fixtures.add(helix1);
+        fixtures.add(helix2);
+        fixtures.add(helix3);
+        
+        return fixtures.toArray(new LXAbstractFixture[fixtures.size()]);
+    }
+
+    private class LXEdge extends LXAbstractFixture 
+    {
+        LXEdge(Edge edge)
+        {
+            PopulateFixture(edge);
+        }
+
+        private void PopulateFixture(Edge edge)
+        {
+            for (int i = 0; i < edge.fillerPoints.length; i++)
             {
-                v1s[i] = triangles[i].v1;
-                v2s[i] = triangles[i].v2;
-                v3s[i] = triangles[i].v3;
-            }
-
-            edges = new Edge[3];
-
-            edges[0] = new Edge(v1s, 296);
-            edges[1] = new Edge(v2s, 296);
-            edges[2] = new Edge(v3s, 296);
-
-            for (int i = 0; i < edges[0].fillerPoints.length; i++)
-            {
-                if(edges[0].fillerPoints[i] == null) continue;
-                addPoint(edges[0].fillerPoints[i].toLXPoint());
-            }
-
-            for (int i = 0; i < edges[1].fillerPoints.length; i++)
-            {
-                if(edges[1].fillerPoints[i] == null) continue;
-                addPoint(edges[1].fillerPoints[i].toLXPoint());
-            }
-
-            for (int i = 0; i < edges[2].fillerPoints.length; i++)
-            {
-                if(edges[2].fillerPoints[i] == null) continue;
-                addPoint(edges[2].fillerPoints[i].toLXPoint());
+                if(edge.fillerPoints[i] == null) continue;
+                addPoint(edge.fillerPoints[i].toLXPoint());
             }
         }
     }
 
-    private static class Triangles extends LXAbstractFixture 
+    private class LXTriangle extends LXAbstractFixture 
     {
-        Triangles() 
+        LXTriangle(Triangle triangle) 
         {
-            PopulateTriangles();
+            PopulateFixture(triangle);
         }
 
-        private void PopulateTriangles()
+        private void PopulateFixture(Triangle triangle)
         {
-            triangles = new Triangle[SIZE];
-            for (int z = 0; z <= SIZE - 1; ++z) 
+            Vector3[] fillerPoints = triangle.fillerPoints;
+            for (int i = 0; i < fillerPoints.length; i++)
             {
-                triangles[z] = new Triangle(new Vector3(5, 5, z*5 - 10), 90 + (z * 15), 10, 150);
-                Vector3[] fillerPoints = triangles[z].fillerPoints;
-                for (int i = 0; i < fillerPoints.length; i++)
-                {
-                    addPoint(fillerPoints[i].toLXPoint());
-                }
+                addPoint(fillerPoints[i].toLXPoint());
             }
         }
     }

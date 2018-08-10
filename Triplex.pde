@@ -28,15 +28,15 @@ void setup()
 {
   // Processing setup, constructs the window and the LX instance
   size(1920, 1020, P3D);
-  lx = new heronarts.lx.studio.LXStudio(this, buildModel(), MULTITHREADED);
+  LXModel triplex = buildModel();
+  lx = new heronarts.lx.studio.LXStudio(this, triplex, MULTITHREADED);
   lx.ui.setResizable(RESIZABLE);
   lx.ui.setBackgroundColor(0);
 }
 
 void initialize(heronarts.lx.studio.LXStudio lx, heronarts.lx.studio.LXStudio.UI ui) 
 {
-  // Add custom components or output drivers here
-  lx.engine.addOutput(new OPCOutput(lx, "192.168.1.117", 7890));
+  
 }
 
 void onUIReady(heronarts.lx.studio.LXStudio lx, heronarts.lx.studio.LXStudio.UI ui) 

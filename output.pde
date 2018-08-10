@@ -1,6 +1,5 @@
-public static class TriangleDatagram extends OPCDatagram {
-  
-  // TODO(mcslee): Tweak this value on-playa for best results
+public static class TriangleDatagram extends OPCDatagram 
+{
   static final float GAMMA = 1.8;
   
   static final byte[][] GAMMA_LUT = new byte[256][256];
