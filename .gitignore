@@ -2,6 +2,6 @@ application/
 build-tmp/
 code/
 *.tmp
-.gitignore
+.lxproject
 .DS_Store
 
