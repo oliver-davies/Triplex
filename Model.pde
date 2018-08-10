@@ -122,13 +122,19 @@ public class Triangle
 
 public class Structure
 {
+    // Constants 
     public final int TRIANGLE_COUNT = 9;
     public final int EDGE_COUNT = 3;
+
+    // Components of the structure
     public ArrayList<LXAbstractFixture> fixtures = new ArrayList<LXAbstractFixture>();
     public Triangle[] triangles;
     public Edge[] edges;
-    public int triangleLength = 0;
+
+    // Lengths for ease of use
+    public int totalLength = 0;
     public int edgesLength = 0;
+    public int trianglesLength = 0;
 
     public Structure()
     {
@@ -139,7 +145,7 @@ public class Structure
             triangles[z] = new Triangle(new Vector3(5, 5, z*5 - 10), 90 + (z * 15), 10, 144);
 
             LXTriangle tri = new LXTriangle(triangles[z]);
-            triangleLength += tri.getPoints().size();
+            trianglesLength += tri.getPoints().size();
 
             fixtures.add(tri);
         }
@@ -169,6 +175,8 @@ public class Structure
         edgesLength += helix1.getPoints().size();
         edgesLength += helix2.getPoints().size();
         edgesLength += helix3.getPoints().size();
+
+        totalLength = edgesLength + trianglesLength;
 
         fixtures.add(helix1);
         fixtures.add(helix2);
