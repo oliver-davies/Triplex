@@ -19,6 +19,13 @@ public abstract class TrianglePattern extends LXPattern
         else if (val.compareTo(max) > 0) return max;
         else return val;
     }
+
+    public float lerp(float a, float b, float delta) 
+    {
+        delta = clamp(delta, 0f, 1f);
+        float val = (a * (1 - delta)) + (b * delta); 
+        return val;
+    }
 }
 
 public class PatternSolid extends LXPattern 
@@ -42,6 +49,32 @@ public class PatternSolid extends LXPattern
     }
 }
 
+public class PatternSingleTriangle extends TrianglePattern 
+{
+    public final CompoundParameter id = new CompoundParameter("TriangleID", 0, 11);
+
+    public PatternSingleTriangle(LX lx)
+    {
+        super(lx);
+        addParameter("TriangleID", this.id);
+    }
+
+    public void run(double deltaMs) 
+    {
+        for(int i = 0; i < model.structure.fixtures.size(); i++)
+        {
+            if(i == (int)this.id.getValuef())
+            {
+                setColor(model.structure.fixtures.get(i), LXColor.gray(100));
+            }
+            else
+            {
+                setColor(model.structure.fixtures.get(i), LXColor.gray(0));
+            }
+        }
+    }
+}
+
 public class PatternSweepTwirl extends TrianglePattern 
 {
     public final CompoundParameter depthSweep = new CompoundParameter("DepthSweep", 0, 100);
@@ -59,8 +92,8 @@ public class PatternSweepTwirl extends TrianglePattern
 
     public void run(double deltaMs) 
     {
-        float rSpread = (float)this.radialSpread.getValue();
-        float dSweep = (float)this.depthSweep.getValue();
+        float rSpread = this.radialSpread.getValuef();
+        float dSweep = this.depthSweep.getValuef();
 
         for (int t = 0; t < triangles.length; t++) 
         {
@@ -81,6 +114,7 @@ public class PatternRadialWarp extends TrianglePattern
     public final CompoundParameter warpRadius = new CompoundParameter("Radius", 0, 16);
     public final CompoundParameter warpWidth = new CompoundParameter("Width", 0, 16);
     public final CompoundParameter crawl = new CompoundParameter("Crawl", 0, 6.28);
+    public final CompoundParameter lerpSpeed = new CompoundParameter("Lerp Speed", 0, 100);
 
     public PatternRadialWarp(LX lx) 
     {
@@ -88,13 +122,15 @@ public class PatternRadialWarp extends TrianglePattern
         addParameter("depthSweep", this.warpRadius);
         addParameter("radialSpread", this.warpWidth);
         addParameter("crawl", this.crawl);
+        addParameter("lerpSpeed", this.lerpSpeed);
     }
 
     public void run(double deltaMs) 
     {
-        float wRadius = (float)this.warpRadius.getValue();
-        float wWidth = (float)this.warpWidth.getValue();
-        float crawl = (float)this.crawl.getValue();
+        float wRadius = this.warpRadius.getValuef();
+        float wWidth = this.warpWidth.getValuef();
+        float crawl = this.crawl.getValuef();
+        float lerpSpeed = this.lerpSpeed.getValuef();
 
         for (int t = 0; t < triangles.length; t++) 
         {
@@ -104,7 +140,40 @@ public class PatternRadialWarp extends TrianglePattern
             {
                 double xDist = cos((float)(tri.center.x - tri.fillerPoints[i].x) + sin(crawl) * 2);
                 double yDist = sin((float)(tri.center.y - tri.fillerPoints[i].y) + cos(crawl) * 2);
-                setColor(i + (t * tri.fillerPoints.length), LXColor.gray(((xDist*xDist + yDist*yDist) * wRadius - wWidth)));
+                float val = (float)((xDist*xDist + yDist*yDist) * wRadius - wWidth);
+                float prev = colors[i + (t * tri.fillerPoints.length)];
+                setColor(i + (t * tri.fillerPoints.length), LXColor.gray(lerp(prev, val, (float)(deltaMs * lerpSpeed))));
+            }
+        }
+    }
+}
+
+public class PatternCrawl extends TrianglePattern 
+{
+    public final CompoundParameter speed = new CompoundParameter("Speed", 0, 5);
+    private float time = 0;
+
+
+    public PatternCrawl(LX lx) 
+    {
+        super(lx);
+        addParameter("Speed", this.speed);
+    }
+
+    public void run(double deltaMs) 
+    {
+        float speed = (float)this.speed.getValue();
+        time += deltaMs * speed;
+
+        for (int t = 0; t < triangles.length; t++) 
+        {
+            Triangle tri = triangles[t];
+
+            for (int i = 0; i < tri.fillerPoints.length; i++)
+            {
+                double test = abs(time - i) % (144 * 3);
+
+                setColor(i + tri.fillerPoints.length * t, LXColor.gray( clamp(100 - test, (double)0, (double)100) ) );
             }
         }
     }
@@ -114,7 +183,6 @@ public class PatternOuterDash extends TrianglePattern
 {
     public final CompoundParameter speed = new CompoundParameter("Speed", 0, -1, 1);
     private float timePassed = 0;
-
     public PatternOuterDash(LX lx) 
     {
         super(lx);

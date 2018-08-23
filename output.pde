@@ -1,6 +1,6 @@
 public static class TriangleDatagram extends OPCDatagram 
 {
-  static final float GAMMA = 1.8;
+  static final float GAMMA = 1;
   
   static final byte[][] GAMMA_LUT = new byte[256][256];
   
@@ -14,9 +14,10 @@ public static class TriangleDatagram extends OPCDatagram
     
   private final LXParameter brightness; 
     
-  public TriangleDatagram(LX lx, int[] indices, byte channel) {
-    super(indices, channel);
+  public TriangleDatagram(LX lx, LXAbstractFixture fixture, byte channel) {
+    super(fixture, channel);
     this.brightness = lx.engine.output.brightness;
+    print(lx.engine.output.brightness.getValuef());
   }
   
   @Override
