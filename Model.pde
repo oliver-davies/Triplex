@@ -128,7 +128,7 @@ public class Structure
     // Constants 
     public final int TRIANGLE_COUNT = 9;
     public final int TRIANGLE_EDGE_LED_COUNT = 144;
-    public final int HELIX_EDGE_LED_COUNT = 296;
+    public final int HELIX_EDGE_LED_COUNT = 288;
     public final int EDGE_COUNT = 3;
 
     // Components of the structure
@@ -147,7 +147,6 @@ public class Structure
         triangles = new Triangle[TRIANGLE_COUNT];
         for (int z = 0; z < TRIANGLE_COUNT; ++z) 
         {
-            println(trianglesLength);
             trianglesLength += TRIANGLE_EDGE_LED_COUNT * 3;
 
             triangles[z] = new Triangle(new Vector3(5, 5, z*5 - 10), 90 + (z * 15), 10, TRIANGLE_EDGE_LED_COUNT, trianglesLength);

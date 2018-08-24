@@ -44,15 +44,15 @@ void setup()
     lx.engine.output.addChild(datagramOutput);
 
     // // 1, 2, 3, 4, 5, 6, 7, 8, 9, H1, H2, H3
-    // for (int i = 0; i < 12; i++)
-    // {
-    //   TriangleDatagram td = new TriangleDatagram(lx, triplex.structure.fixtures.get(i), (byte) 0x00);
-    //   td.setAddress("192.168.1."+ (i + 40)).setPort(6969);
-    //   datagramOutput.addDatagram(td);
-    // }
-    TriangleDatagram td = new TriangleDatagram(lx, triplex.structure.fixtures.get(0), (byte) 0x00);
-    td.setAddress("192.168.1.51").setPort(6969);
-    datagramOutput.addDatagram(td);
+    for (int i = 0; i < 12; i++)
+    {
+      TriangleDatagram td = new TriangleDatagram(lx, triplex.structure.fixtures.get(i), (byte) 0x00);
+      td.setAddress("192.168.1."+ (i + 40)).setPort(6969);
+      datagramOutput.addDatagram(td);
+    }
+    // TriangleDatagram td = new TriangleDatagram(lx, triplex.structure.fixtures.get(0), (byte) 0x00);
+    // td.setAddress("192.168.1.51").setPort(6969);
+    // datagramOutput.addDatagram(td);
   }
   catch (Exception x) 
   {
